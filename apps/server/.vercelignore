@@ -1,0 +1,17 @@
+# Development files
+.turbo
+*.log
+.env.local
+.env.development
+
+# Source files (we only need compiled output)
+# Note: api/ directory should NOT be ignored as it contains the serverless function entry point
+
+# Test files
+*.test.ts
+*.spec.ts
+__tests__
+
+# Documentation
+*.md
+!README.md
