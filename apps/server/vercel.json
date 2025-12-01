@@ -1,14 +1,4 @@
 {
-    "buildCommand": "bun run build",
-    "installCommand": "bun install",
-    "devCommand": "bun run dev",
-    "outputDirectory": ".",
-    "functions": {
-        "api/index.ts": {
-            "memory": 1024,
-            "maxDuration": 10
-        }
-    },
     "rewrites": [
         {
             "source": "/(.*)",
