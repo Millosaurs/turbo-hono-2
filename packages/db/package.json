@@ -1,32 +1,38 @@
 {
-  "name": "@turbo-hono-2/db",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
+    "name": "@turbo-hono-2/db",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./schema/auth": {
+            "types": "./dist/schema/auth.d.ts",
+            "default": "./dist/schema/auth.js"
+        }
     },
-    "./*": {
-      "default": "./src/*.ts"
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsup",
+        "check-types": "tsc --noEmit",
+        "db:push": "drizzle-kit push",
+        "db:studio": "drizzle-kit studio",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "drizzle-kit migrate"
+    },
+    "devDependencies": {
+        "drizzle-kit": "^0.31.2",
+        "@types/pg": "^8.11.11",
+        "@turbo-hono-2/config": "workspace:*",
+        "typescript": "^5"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "drizzle-orm": "^0.44.2",
+        "pg": "^8.14.1",
+        "dotenv": "catalog:",
+        "zod": "^4.1.11"
     }
-  },
-  "scripts": {
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.2",
-    "@types/pg": "^8.11.11",
-    "@turbo-hono-2/config": "workspace:*"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "drizzle-orm": "^0.44.2",
-    "pg": "^8.14.1",
-    "dotenv": "catalog:",
-    "zod": "^4.1.11"
-  }
 }

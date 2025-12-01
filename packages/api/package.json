@@ -1,30 +1,40 @@
 {
-  "name": "@turbo-hono-2/api",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
+    "name": "@turbo-hono-2/api",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./context": {
+            "types": "./dist/context.d.ts",
+            "default": "./dist/context.js"
+        },
+        "./routers/index": {
+            "types": "./dist/routers/index.d.ts",
+            "default": "./dist/routers/index.js"
+        }
     },
-    "./*": {
-      "default": "./src/*.ts"
+    "type": "module",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsup",
+        "check-types": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@turbo-hono-2/config": "workspace:*"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@orpc/server": "catalog:",
+        "@orpc/client": "catalog:",
+        "@orpc/openapi": "catalog:",
+        "@orpc/zod": "catalog:",
+        "hono": "catalog:",
+        "dotenv": "catalog:",
+        "zod": "^4.1.11",
+        "@turbo-hono-2/auth": "workspace:*",
+        "@turbo-hono-2/db": "workspace:*"
     }
-  },
-  "type": "module",
-  "scripts": {},
-  "devDependencies": {
-    "@turbo-hono-2/config": "workspace:*"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@orpc/server": "catalog:",
-    "@orpc/client": "catalog:",
-    "@orpc/openapi": "catalog:",
-    "@orpc/zod": "catalog:",
-    "hono": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "^4.1.11",
-    "@turbo-hono-2/auth": "workspace:*",
-    "@turbo-hono-2/db": "workspace:*"
-  }
 }
