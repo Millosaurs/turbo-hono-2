@@ -33,39 +33,58 @@ console.log("API Server URL:", serverUrl);
 
 export const link = new RPCLink({
 	url: `${serverUrl}/rpc`,
-	fetch(input, init) {
+	async fetch(input, init) {
 		console.log("Making request to:", input);
 		console.log("Request init:", init);
 
+		const requestInit = init as RequestInit | undefined;
+
 		// Handle both Request objects and string URLs
 		let url: string;
-		let requestInit: RequestInit;
+		let method: string;
+		let headers: HeadersInit;
+		let body: BodyInit | null = null;
 
 		if (typeof input === "string") {
 			url = input;
-			requestInit = init || {};
+			method = requestInit?.method || "GET";
+			headers = requestInit?.headers || {};
+			body = requestInit?.body || null;
 		} else {
-			// input is a Request object
+			// input is a Request object - we need to read it properly
 			url = input.url;
-			requestInit = {
-				method: input.method,
-				headers: input.headers,
-				body: input.body,
-				...init,
-			};
+			method = input.method;
+
+			// Convert Headers object to plain object
+			const headersObj: Record<string, string> = {};
+			input.headers.forEach((value, key) => {
+				headersObj[key] = value;
+			});
+			headers = headersObj;
+
+			// Clone the body if it exists
+			if (input.body) {
+				body = await input.clone().text();
+			}
 		}
 
-		// Override credentials to include for cross-origin requests
+		// Build final request init with credentials: "include"
 		const finalInit: RequestInit = {
-			...requestInit,
+			method,
 			credentials: "include",
 			headers: {
-				...(requestInit.headers as Record<string, string>),
+				...(headers as Record<string, string>),
 				"Content-Type": "application/json",
 			},
+			body,
+			...(requestInit || {}),
 		};
 
-		console.log("Final request:", { url, init: finalInit });
+		console.log("Final request:", {
+			url,
+			method,
+			credentials: finalInit.credentials,
+		});
 
 		return fetch(url, finalInit)
 			.then((response) => {

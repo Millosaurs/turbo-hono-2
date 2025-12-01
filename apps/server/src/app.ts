@@ -19,34 +19,45 @@ app.use(logger());
 const corsOrigins =
 	process.env.CORS_ORIGIN?.split(",").map((o) => o.trim()) || [];
 
+console.log("CORS Origins configured:", corsOrigins);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+
 // Apply CORS middleware
 app.use(
 	"/*",
 	cors({
 		origin: (origin) => {
+			console.log("CORS check for origin:", origin);
+
 			// Allow requests with no origin (like mobile apps, Postman, curl)
-			if (!origin) return "*";
+			if (!origin) {
+				console.log("No origin, allowing with *");
+				return "*";
+			}
 
 			// Check if origin is in the allowed list
 			if (corsOrigins.length > 0 && corsOrigins.includes(origin)) {
+				console.log("Origin in whitelist, allowing:", origin);
 				return origin;
 			}
 
 			// Allow localhost for development
 			if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+				console.log("Localhost origin, allowing:", origin);
+				return origin;
+			}
+
+			// Allow all Vercel deployments
+			if (origin.includes(".vercel.app")) {
+				console.log("Vercel origin, allowing:", origin);
 				return origin;
 			}
 
 			// Log unmatched origins for debugging
 			console.warn(`CORS: Unmatched origin: ${origin}`);
 
-			// In development, allow all origins; in production, be more restrictive
-			if (process.env.NODE_ENV !== "production") {
-				return origin;
-			}
-
-			// For production, you might want to return null to block
-			// but for now, we'll allow to help debug
+			// Allow all origins for now to debug
+			console.log("Allowing origin anyway for debugging:", origin);
 			return origin;
 		},
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -113,8 +124,29 @@ app.use("/*", async (c, next) => {
 				status: rpcResult.response.status,
 				headers: Object.fromEntries(rpcResult.response.headers.entries()),
 			});
-			// Return the response directly - CORS headers are already applied by middleware
-			return rpcResult.response;
+
+			// Manually add CORS headers to response
+			const origin = c.req.header("origin") || "*";
+			const newHeaders = new Headers(rpcResult.response.headers);
+
+			newHeaders.set("Access-Control-Allow-Origin", origin);
+			newHeaders.set("Access-Control-Allow-Credentials", "true");
+			newHeaders.set(
+				"Access-Control-Allow-Methods",
+				"GET, POST, PUT, DELETE, PATCH, OPTIONS",
+			);
+			newHeaders.set(
+				"Access-Control-Allow-Headers",
+				"Content-Type, Authorization, X-Requested-With, Accept, Origin",
+			);
+
+			const responseBody = await rpcResult.response.text();
+
+			return new Response(responseBody, {
+				status: rpcResult.response.status,
+				statusText: rpcResult.response.statusText,
+				headers: newHeaders,
+			});
 		}
 
 		// Handle API reference requests
@@ -128,8 +160,29 @@ app.use("/*", async (c, next) => {
 				status: apiResult.response.status,
 				headers: Object.fromEntries(apiResult.response.headers.entries()),
 			});
-			// Return the response directly - CORS headers are already applied by middleware
-			return apiResult.response;
+
+			// Manually add CORS headers to response
+			const origin = c.req.header("origin") || "*";
+			const newHeaders = new Headers(apiResult.response.headers);
+
+			newHeaders.set("Access-Control-Allow-Origin", origin);
+			newHeaders.set("Access-Control-Allow-Credentials", "true");
+			newHeaders.set(
+				"Access-Control-Allow-Methods",
+				"GET, POST, PUT, DELETE, PATCH, OPTIONS",
+			);
+			newHeaders.set(
+				"Access-Control-Allow-Headers",
+				"Content-Type, Authorization, X-Requested-With, Accept, Origin",
+			);
+
+			const responseBody = await apiResult.response.text();
+
+			return new Response(responseBody, {
+				status: apiResult.response.status,
+				statusText: apiResult.response.statusText,
+				headers: newHeaders,
+			});
 		}
 
 		console.log("No handler matched, passing to next middleware");
