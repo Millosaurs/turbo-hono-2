@@ -1,5 +1,5 @@
-import type { Context as HonoContext } from "hono";
 import { auth } from "@turbo-hono-2/auth";
+import type { Context as HonoContext } from "hono";
 
 export type CreateContextOptions = {
 	context: HonoContext;
@@ -7,7 +7,7 @@ export type CreateContextOptions = {
 
 export async function createContext({ context }: CreateContextOptions) {
 	const session = await auth.api.getSession({
-		headers: context.req.raw.headers,
+		headers: context.req.raw.headers as Headers,
 	});
 	return {
 		session,
