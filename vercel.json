@@ -1,5 +1,0 @@
-{
-    "buildCommand": "bun run build --filter=server",
-    "installCommand": "bun install",
-    "framework": null
-}
