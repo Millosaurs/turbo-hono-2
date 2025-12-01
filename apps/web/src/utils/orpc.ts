@@ -22,6 +22,7 @@ export const queryClient = new QueryClient({
 
 export const link = new RPCLink({
 	url: `${import.meta.env.VITE_SERVER_URL}/rpc`,
+	method: "POST",
 	fetch(url, options) {
 		return fetch(url, {
 			...options,
