@@ -33,23 +33,41 @@ console.log("API Server URL:", serverUrl);
 
 export const link = new RPCLink({
 	url: `${serverUrl}/rpc`,
-	fetch(url, options) {
-		const fetchOptions = options as RequestInit;
-		console.log("Making request to:", url);
-		console.log("Request options:", {
-			method: fetchOptions?.method,
-			headers: fetchOptions?.headers,
-			credentials: "include",
-		});
+	fetch(input, init) {
+		console.log("Making request to:", input);
+		console.log("Request init:", init);
 
-		return fetch(url, {
-			...fetchOptions,
+		// Handle both Request objects and string URLs
+		let url: string;
+		let requestInit: RequestInit;
+
+		if (typeof input === "string") {
+			url = input;
+			requestInit = init || {};
+		} else {
+			// input is a Request object
+			url = input.url;
+			requestInit = {
+				method: input.method,
+				headers: input.headers,
+				body: input.body,
+				...init,
+			};
+		}
+
+		// Override credentials to include for cross-origin requests
+		const finalInit: RequestInit = {
+			...requestInit,
 			credentials: "include",
 			headers: {
-				...(fetchOptions?.headers as Record<string, string>),
+				...(requestInit.headers as Record<string, string>),
 				"Content-Type": "application/json",
 			},
-		})
+		};
+
+		console.log("Final request:", { url, init: finalInit });
+
+		return fetch(url, finalInit)
 			.then((response) => {
 				console.log("Response status:", response.status);
 				console.log("Response headers:", Object.fromEntries(response.headers));

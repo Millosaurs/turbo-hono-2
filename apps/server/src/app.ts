@@ -91,6 +91,15 @@ export const rpcHandler = new RPCHandler(appRouter, {
 // Main request handler
 app.use("/*", async (c, next) => {
 	try {
+		// Log incoming request details
+		console.log("Incoming request:", {
+			method: c.req.method,
+			url: c.req.url,
+			path: c.req.path,
+			origin: c.req.header("origin"),
+			contentType: c.req.header("content-type"),
+		});
+
 		const context = await createContext({ context: c });
 
 		// Handle RPC requests
@@ -100,6 +109,10 @@ app.use("/*", async (c, next) => {
 		});
 
 		if (rpcResult.matched) {
+			console.log("RPC matched, returning response:", {
+				status: rpcResult.response.status,
+				headers: Object.fromEntries(rpcResult.response.headers.entries()),
+			});
 			// Return the response directly - CORS headers are already applied by middleware
 			return rpcResult.response;
 		}
@@ -111,10 +124,15 @@ app.use("/*", async (c, next) => {
 		});
 
 		if (apiResult.matched) {
+			console.log("API matched, returning response:", {
+				status: apiResult.response.status,
+				headers: Object.fromEntries(apiResult.response.headers.entries()),
+			});
 			// Return the response directly - CORS headers are already applied by middleware
 			return apiResult.response;
 		}
 
+		console.log("No handler matched, passing to next middleware");
 		await next();
 	} catch (error) {
 		console.error("Request handler error:", error);
