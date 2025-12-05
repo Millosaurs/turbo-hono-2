@@ -122,6 +122,18 @@ app.use("*", async (c, next) => {
 	);
 });
 
+// Handle OPTIONS preflight requests explicitly before other handlers
+app.options("*", (c) => {
+	corsLogger.debug(
+		{
+			path: c.req.path,
+			origin: c.req.header("origin"),
+		},
+		"OPTIONS preflight request handled",
+	);
+	return new Response(null, { status: 204 });
+});
+
 app.on(["POST", "GET"], "/api/auth/*", (c) => {
 	authLogger.debug(
 		{
