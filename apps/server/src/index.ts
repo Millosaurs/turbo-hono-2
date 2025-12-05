@@ -1,12 +1,32 @@
 import { serve } from "@hono/node-server";
-import app from "./app";
+import app from "./app.js";
+import { logger } from "./lib/logger.js";
+
+const PORT = Number.parseInt(process.env.PORT || "9999", 10);
+
+logger.info(
+	{
+		port: PORT,
+		nodeEnv: process.env.NODE_ENV,
+		corsOrigin: process.env.CORS_ORIGIN,
+		frontendUrl: process.env.FRONTEND_URL,
+	},
+	"Starting server...",
+);
 
 serve(
 	{
 		fetch: app.fetch,
-		port: 9999,
+		port: PORT,
 	},
 	(info) => {
-		console.log(`Server is running on http://localhost:${info.port}`);
+		logger.info(
+			{
+				port: info.port,
+				address: info.address,
+				family: info.family,
+			},
+			`Server is running on http://localhost:${info.port}`,
+		);
 	},
 );
