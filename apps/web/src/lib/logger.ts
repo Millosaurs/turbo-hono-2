@@ -2,6 +2,7 @@ import pino from "pino";
 
 const LOG_LEVEL = import.meta.env.VITE_LOG_LEVEL || "info";
 const NODE_ENV = import.meta.env.MODE || "development";
+const IS_PRODUCTION = NODE_ENV === "production";
 
 // Browser-compatible logger configuration
 export const logger = pino({
@@ -10,30 +11,42 @@ export const logger = pino({
 		asObject: true,
 		serialize: true,
 		transmit: {
-			level: "debug",
+			level: "trace",
 			send: (level, logEvent) => {
-				// Send logs to console in development
-				if (NODE_ENV === "development") {
-					const { messages } = logEvent;
-					const [msg] = messages;
+				const { messages } = logEvent;
+				const [msg] = messages;
 
+				if (!msg) return;
+
+				// Format the log message
+				const timestamp = new Date().toISOString();
+				const logData = typeof msg === "object" ? msg : { message: msg };
+				const module = logData.module || "APP";
+				const message = logData.msg || logData.message || "";
+				const levelLabel = level.toUpperCase().padEnd(5);
+
+				// Create formatted log
+				const formattedLog = `[${timestamp}] ${levelLabel} | ${module} | ${message}`;
+
+				// Only log in development or if explicitly enabled
+				if (!IS_PRODUCTION || LOG_LEVEL === "debug" || LOG_LEVEL === "trace") {
 					switch (level) {
 						case "fatal":
 						case "error":
-							console.error(msg);
+							console.error(formattedLog, logData);
 							break;
 						case "warn":
-							console.warn(msg);
+							console.warn(formattedLog, logData);
 							break;
 						case "info":
-							console.info(msg);
+							console.info(formattedLog, logData);
 							break;
 						case "debug":
 						case "trace":
-							console.debug(msg);
+							console.debug(formattedLog, logData);
 							break;
 						default:
-							console.log(msg);
+							console.log(formattedLog, logData);
 					}
 				}
 			},
@@ -46,6 +59,7 @@ export const logger = pino({
 	},
 	base: {
 		env: NODE_ENV,
+		service: "turbo-hono-web",
 	},
 });
 
@@ -65,6 +79,7 @@ logger.info(
 	{
 		logLevel: LOG_LEVEL,
 		env: NODE_ENV,
+		isProduction: IS_PRODUCTION,
 		serverUrl: import.meta.env.VITE_SERVER_URL,
 	},
 	"Frontend logger initialized",

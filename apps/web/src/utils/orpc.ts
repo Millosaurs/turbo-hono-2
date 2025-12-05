@@ -63,7 +63,7 @@ export const link = new RPCLink({
 				headers: (options as RequestInit)?.headers,
 				hasBody: !!(options as RequestInit)?.body,
 			},
-			"🚀 Sending RPC request",
+			"Sending RPC request",
 		);
 
 		try {
@@ -84,7 +84,7 @@ export const link = new RPCLink({
 					duration: `${duration}ms`,
 					headers: Object.fromEntries(response.headers.entries()),
 				},
-				`✅ RPC response received: ${response.status} ${response.statusText} (${duration}ms)`,
+				`RPC response received: ${response.status} ${response.statusText} (${duration}ms)`,
 			);
 
 			if (!response.ok) {
@@ -95,7 +95,7 @@ export const link = new RPCLink({
 						statusText: response.statusText,
 						headers: Object.fromEntries(response.headers.entries()),
 					},
-					"❌ RPC request failed with non-OK status",
+					"RPC request failed with non-OK status",
 				);
 
 				// Try to log response body for debugging
@@ -131,7 +131,7 @@ export const link = new RPCLink({
 					errorType:
 						error instanceof TypeError ? "Network Error" : "Unknown Error",
 				},
-				`❌ RPC request failed: ${error instanceof Error ? error.message : String(error)}`,
+				`RPC request failed: ${error instanceof Error ? error.message : String(error)}`,
 			);
 
 			// Check for common network issues

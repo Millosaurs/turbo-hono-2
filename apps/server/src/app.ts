@@ -49,11 +49,14 @@ app.use(
 					corsOriginEnv: process.env.CORS_ORIGIN,
 					frontendUrlEnv: process.env.FRONTEND_URL,
 				},
-				"CORS origin check",
+				"Checking CORS origin against allowed list",
 			);
 
 			if (!origin) {
-				corsLogger.warn("No origin header in request");
+				corsLogger.warn(
+					{ allowedOrigins },
+					"No origin header present in request, using first allowed origin",
+				);
 				return allowedOrigins[0] || "*";
 			}
 
@@ -63,7 +66,7 @@ app.use(
 					origin,
 					isAllowed,
 				},
-				`CORS origin ${isAllowed ? "allowed" : "rejected"}`,
+				`CORS origin validation ${isAllowed ? "passed" : "failed"}`,
 			);
 
 			return isAllowed ? origin : allowedOrigins[0] || "*";
@@ -91,7 +94,7 @@ app.use("*", async (c, next) => {
 			contentType,
 			headers: Object.fromEntries(c.req.raw.headers.entries()),
 		},
-		"Incoming request",
+		"Request received",
 	);
 
 	await next();
@@ -104,18 +107,18 @@ app.use("*", async (c, next) => {
 			method,
 			path,
 			status,
-			duration: `${duration}ms`,
+			duration,
 			origin,
 		},
-		`${method} ${path} ${status} - ${duration}ms`,
+		`Request completed: ${method} ${path} ${status} in ${duration}ms`,
 	);
 
-	// Log response headers for debugging
 	logger.debug(
 		{
+			status,
 			responseHeaders: Object.fromEntries(c.res.headers.entries()),
 		},
-		"Response headers",
+		"Response headers sent",
 	);
 });
 
@@ -143,7 +146,6 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 				{
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
-					cause: error instanceof Error ? error.cause : undefined,
 				},
 				"API Handler Error",
 			);
@@ -158,7 +160,6 @@ export const rpcHandler = new RPCHandler(appRouter, {
 				{
 					error: error instanceof Error ? error.message : String(error),
 					stack: error instanceof Error ? error.stack : undefined,
-					cause: error instanceof Error ? error.cause : undefined,
 				},
 				"RPC Handler Error",
 			);
@@ -174,7 +175,7 @@ app.use("/*", async (c, next) => {
 			path: c.req.path,
 			method: c.req.method,
 		},
-		"Checking RPC handler",
+		"Processing RPC handler",
 	);
 
 	const rpcResult = await rpcHandler.handle(c.req.raw, {
@@ -189,17 +190,17 @@ app.use("/*", async (c, next) => {
 				status: rpcResult.response.status,
 				matched: true,
 			},
-			"RPC request matched and handled",
+			"RPC handler matched and processed request",
 		);
 
 		rpcLogger.debug(
 			{
-				responseStatus: rpcResult.response.status,
+				status: rpcResult.response.status,
 				responseHeaders: Object.fromEntries(
 					rpcResult.response.headers.entries(),
 				),
 			},
-			"RPC response created",
+			"RPC response prepared",
 		);
 
 		return rpcResult.response;
@@ -209,7 +210,7 @@ app.use("/*", async (c, next) => {
 		{
 			path: c.req.path,
 		},
-		"RPC handler did not match, checking API handler",
+		"RPC handler not matched, passing to API handler",
 	);
 
 	const apiResult = await apiHandler.handle(c.req.raw, {
@@ -224,7 +225,7 @@ app.use("/*", async (c, next) => {
 				status: apiResult.response.status,
 				matched: true,
 			},
-			"API request matched and handled",
+			"API handler matched and processed request",
 		);
 
 		return apiResult.response;
@@ -234,14 +235,14 @@ app.use("/*", async (c, next) => {
 		{
 			path: c.req.path,
 		},
-		"API handler did not match, passing to next middleware",
+		"API handler not matched, continuing to next middleware",
 	);
 
 	await next();
 });
 
 app.get("/", (c) => {
-	logger.info("Health check endpoint hit");
+	logger.info("Health check endpoint accessed");
 	return c.text("OK");
 });
 
@@ -251,9 +252,15 @@ app.notFound((c) => {
 			path: c.req.path,
 			method: c.req.method,
 		},
-		"Route not found",
+		"Route not found - 404",
 	);
-	return c.json({ error: "Not Found" }, 404);
+	return c.json(
+		{
+			error: "Not Found",
+			path: c.req.path,
+		},
+		404,
+	);
 });
 
 app.onError((err, c) => {
@@ -264,13 +271,14 @@ app.onError((err, c) => {
 			path: c.req.path,
 			method: c.req.method,
 		},
-		"Unhandled error",
+		"Unhandled error occurred - 500",
 	);
 
 	return c.json(
 		{
 			error: "Internal Server Error",
 			message: process.env.NODE_ENV === "development" ? err.message : undefined,
+			path: c.req.path,
 		},
 		500,
 	);

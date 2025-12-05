@@ -20,7 +20,7 @@ export const authClient = createAuthClient({
 					method: context.method,
 					headers: context.headers,
 				},
-				"🔐 Auth request",
+				"Auth request",
 			);
 		},
 		onResponse: async (context) => {
@@ -29,7 +29,7 @@ export const authClient = createAuthClient({
 					status: context.response.status,
 					ok: context.response.ok,
 				},
-				`🔐 Auth response: ${context.response.status}`,
+				`Auth response: ${context.response.status}`,
 			);
 		},
 		onError: async (context) => {
@@ -37,7 +37,7 @@ export const authClient = createAuthClient({
 				{
 					error: context.error,
 				},
-				"🔐 Auth request failed",
+				"Auth request failed",
 			);
 		},
 	},
