@@ -10,17 +10,19 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "hono": "catalog:",
     "@hono/node-server": "^1.14.4",
-    "@orpc/server": "catalog:",
+    "@hono/zod-openapi": "^1.1.5",
     "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "^4.1.11",
     "@turbo-hono-2/api": "workspace:*",
     "@turbo-hono-2/auth": "workspace:*",
-    "@turbo-hono-2/db": "workspace:*"
+    "@turbo-hono-2/db": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "stoker": "^2.0.1",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "typescript": "^5.8.2",
